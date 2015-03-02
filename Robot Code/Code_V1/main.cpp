@@ -15,6 +15,7 @@ int main(void)
         {
             LCD.WriteLine( "Hello World!" );
             Sleep( 100 );
+            LCD.WriteLine("Hello");
         }
     }
     return 0;
