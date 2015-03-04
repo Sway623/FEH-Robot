@@ -13,6 +13,7 @@ FEHMotor right_motor(FEHMotor::Motor0);
 FEHMotor left_motor(FEHMotor::Motor1);
 FEHServo servo(FEHServo::Servo7);
 FEHServo servoSalt(FEHServo::Servo4);
+AnalogInputPin CdS(FEHIO::P0_0);
 
 //declares RPS location constants for key locations
 const float CRANK_X;
@@ -28,7 +29,8 @@ const float SWITCH_Y;
 
 const int percent = 60; //sets the motor percent for the rest of the code
 const int toSlow = 25; //this int will be the fix required for the robot to travel among the course
-const float cpi = 3.704; //counts per inch
+const float cts_per_in= 3.704; //counts per inch
+const float cts_per_deg; //counts per degree
 
 //declares prototypes for functions
 void goToCrank();
@@ -138,7 +140,7 @@ void turn_left(int percent, int counts) //using encoders
  *This method will allow the robot to push the buttons on the side of the BOO in order
  */
 void pushButtons(){
-    int counts = 5; //TODO CONVERT INCHES TO COUNTS, THEN DETERMINE NUMBER OF COUNTS REQUIRED HERE
+    int counts = cts_per_in * 1;
     if (RPS.RedButtonOrder() == 1){
         servo.SetDegree(0); //prepare to hit red button
         move(percent-toSlow, counts); //drive forward and push button
@@ -223,19 +225,69 @@ void depositSalt(){
  *          else the switch must be pushed to the right.
  */
 void toggleSwitch(){
-    int counts = 5; //TODO CONVERT INCHES TO COUNTS, THEN DETERMINE NUMBER OF COUNTS REQUIRED HERE
     if (RPS.OilDirec()==0){
-        turn_right(percent-toSlow, counts);
+        turn_right(percent-toSlow, cts_per_deg*45);
         servoSalt.SetDegree(45);
-        turn_left(percent-toSlow, counts);
+        turn_left(percent-toSlow, cts_per_deg*50);
     } else{
-        turn_left(percent-toSlow, counts);
+        turn_left(percent-toSlow, cts_per_deg*45);
         servoSalt.SetDegree(45);
-        turn_right(percent-toSlow, counts);
+        turn_right(percent-toSlow, cts_per_deg*50);
     }
 } //toggleSwitch
 
-//TODO WRITE ALL GOTO METHODS
+/*
+ * This method will take the robot from the start light, to the salt bag.
+ */
+void goToSalt(){
+
+} //goToSalt
+
+/*
+ * This method will take the robot from the salt bag to the crank.
+ */
+void goToCrank(){
+
+} //goToCrank
+
+/*
+ * This method will take the robot from the crank to the buttons
+ */
+void goToButtons(){
+
+} //goToButtons
+
+/*
+ * This method will take the robot from the buttons, to the garage.
+ * After this method is called, the robot should be in good position
+ * to deposit the salt into the garage.
+ */
+void goToGarage(){
+
+} //goToGarage
+
+/*
+ * Finally, this method will take the robot from the garage, to the oil switch.
+ * After this method is called, the robot should go down the avalanche ramp and
+ * be placed in a good position to toggle the switch.
+ */
+void goToSwitch(){
+
+} //goToSwitch
+
+/*
+ * This method is written in order to efficiently complete performance test 3
+ */
+void performanceTest3(){
+    move(percent, cts_per_in*13); //move 13 inches forward
+    turn_left(percent- toSlow, cts_per_deg*90); //turn left 90 degrees
+    move(percent, cts_per_in*11); //move 11 inches forward
+    turn_left(percent - toSlow, cts_per_deg*90); //turn left 90 degrees
+    move(percent, cts_per_in*34); //move 34 inches forward
+    turn_left(percent-toSlow, cts_per_deg*45); //turn left 45 degrees
+    move(percent, cts_per_in*22); //move 22 inches forward
+    pushButtons();
+} //performanceTest3
 
 /*
  * The main method
@@ -257,28 +309,32 @@ int main(void)
     servoSalt.SetDegree(0);
     servo.SetDegree(0);
 
-    for (int i=0; i<arrayLength; i++){
-        switch (taskArray[i]){
-        case 0:
-            goToSalt();
-            getSalt();
-            break;
-        case 1:
-            goToCrank();
-            turnCrank();
-            break;
-        case 2:
-            goToButtons();
-            turnButtons();
-            break;
-        case 3:
-            goToGarage();
-            depositSalt();
-        case 4:
-            goToSwitch();
-            toggleSwitch();
-        } //switch
-    } //for
+    while(CdS.Value()>1);
+
+    performanceTest3();
+
+//    for (int i=0; i<arrayLength; i++){
+//        switch (taskArray[i]){
+//        case 0:
+//            goToSalt();
+//            getSalt();
+//            break;
+//        case 1:
+//            goToCrank();
+//            turnCrank();
+//            break;
+//        case 2:
+//            goToButtons();
+//            turnButtons();
+//            break;
+//        case 3:
+//            goToGarage();
+//            depositSalt();
+//        case 4:
+//            goToSwitch();
+//            toggleSwitch();
+//        } //switch
+//    } //for
 
     return 0;
 } //main
