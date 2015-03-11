@@ -7,8 +7,8 @@
 
 //Declarations for encoders & motors
 ButtonBoard buttons(FEHIO::Bank3);
-DigitalEncoder right_encoder(FEHIO::P0_0);
-DigitalEncoder left_encoder(FEHIO::P0_1);
+FEHEncoder right_encoder(FEHIO::P1_0);
+FEHEncoder left_encoder(FEHIO::P2_0);
 FEHMotor right_motor(FEHMotor::Motor0);
 FEHMotor left_motor(FEHMotor::Motor1);
 FEHServo servo(FEHServo::Servo7);
@@ -16,21 +16,25 @@ FEHServo servoSalt(FEHServo::Servo4);
 AnalogInputPin CdS(FEHIO::P0_0);
 
 //declares RPS location constants for key locations
-const float CRANK_X;
-const float CRANK_Y;
-const float SALT_X;
-const float SALT_Y;
-const float BUTTONS_X;
-const float BUTTONS_Y;
-const float GARAGE_X;
-const float GARAGE_Y;
-const float SWITCH_X;
-const float SWITCH_Y;
+const float START_LIGHT_X = 18;
+const float START_LIGHT_Y = 30;
+const float CRANK_X = 28.8;
+const float CRANK_Y = 58.3;
+const float SALT_X = 27.9;
+const float SALT_Y = 8.4;
+const float BUTTONS_X_RB = 15.099;
+const float BUTTONS_Y = 64.099;
+const float BUTTONS_X_W = 13.8;
+const float BUTTONS_X_W = 62.8;
+const float GARAGE_X = 6.4;
+const float GARAGE_Y = 59.099;
+const float SWITCH_X = 13.669;
+const float SWITCH_Y = 9.9;
 
 const int percent = 60; //sets the motor percent for the rest of the code
 const int toSlow = 25; //this int will be the fix required for the robot to travel among the course
 const float cts_per_in= 3.704; //counts per inch
-const float cts_per_deg; //counts per degree
+const float cts_per_deg = .1776; //counts per degree
 
 //declares prototypes for functions
 void goToCrank();
@@ -44,6 +48,8 @@ void pushButtons();
 void getSalt();
 void depositSalt();
 void toggleSwitch();
+
+void check_heading(float heading);
 
 void move(int percent, int counts);
 void turn_left(int percent, int counts);
@@ -142,60 +148,96 @@ void turn_left(int percent, int counts) //using encoders
 void pushButtons(){
     int counts = cts_per_in * 1;
     if (RPS.RedButtonOrder() == 1){
-        servo.SetDegree(0); //prepare to hit red button
+        servo.SetDegree(25); //prepare to hit red button
+        Sleep(100);
         move(percent-toSlow, counts); //drive forward and push button
+        Sleep(100);
         move(-(percent-toSlow), counts); //back up
         if (RPS.WhiteButtonOrder() == 2){
-            servo.SetDegree(60); //prepare to hit white button
+            servo.SetDegree(90); //prepare to hit white button
+            Sleep(100);
             move(percent-toSlow, counts); //drive forward and push button
+            Sleep(100);
             move(-(percent-toSlow), counts); //back up
-            servo.SetDegree(120); //prepare to hit blue button
+            Sleep(100);
+            servo.SetDegree(150); //prepare to hit blue button
+            Sleep(100);
             move(percent-toSlow, counts); //drive forward and push button
+            Sleep(100);
             move(-(percent-toSlow), counts); //back up
         } else{ //if blue is second
-            servo.SetDegree(120); //prepare to hit blue button
+            servo.SetDegree(150); //prepare to hit blue button
+            Sleep(100);
             move(percent-toSlow, counts); //drive forward and push button
+            Sleep(100);
             move(-(percent-toSlow), counts); //back up
-            servo.SetDegree(60); //prepare to hit white button
+            Sleep(100);
+            servo.SetDegree(90); //prepare to hit white button
+            Sleep(100);
             move(percent-toSlow, counts); //drive forward and push button
+            Sleep(100);
             move(-(percent-toSlow), counts); //back up
         } //else
     } else if (RPS.WhiteButtonOrder() == 1){
-        servo.SetDegree(60); //prepare to hit white button
+        servo.SetDegree(90); //prepare to hit white button
+        Sleep(100);
         move(percent-toSlow, counts); //drive forward and push button
+        Sleep(100);
         move(-(percent-toSlow), counts); //back up
         if (RPS.RedButtonOrder() == 2){
-            servo.SetDegree(0); //prepare to hit red button
+            servo.SetDegree(25); //prepare to hit red button
+            Sleep(100);
             move(percent-toSlow, counts); //drive forward and push button
+            Sleep(100);
             move(-(percent-toSlow), counts); //back up
-            servo.SetDegree(120); //prepare to hit blue button
+            Sleep(100);
+            servo.SetDegree(150); //prepare to hit blue button
+            Sleep(100);
             move(percent-toSlow, counts); //drive forward and push button
+            Sleep(100);
             move(-(percent-toSlow), counts); //back up
         } else{ //if blue is second
-            servo.SetDegree(120); //prepare to hit blue button
+            servo.SetDegree(150); //prepare to hit blue button
+            Sleep(100);
             move(percent-toSlow, counts); //drive forward and push button
+            Sleep(100);
             move(-(percent-toSlow), counts); //back up
-            servo.SetDegree(0); //prepare to hit red button
+            Sleep(100);
+            servo.SetDegree(25); //prepare to hit red button
+            Sleep(100);
             move(percent-toSlow, counts); //drive forward and push button
+            Sleep(100);
             move(-(percent-toSlow), counts); //back up
         } //else
     } else if (RPS.BlueButtonOrder() == 1){
-        servo.SetDegree(120); //prepare to hit blue button
+        servo.SetDegree(150); //prepare to hit blue button
+        Sleep(100);
         move(percent-toSlow, counts); //drive forward and push button
+        Sleep(100);
         move(-(percent-toSlow), counts); //back up
         if (RPS.RedButtonOrder() == 2){
-            servo.SetDegree(0);
+            servo.SetDegree(25);
+            Sleep(100);
             move(percent-toSlow, counts); //drive forward and push button
+            Sleep(100);
             move(-(percent-toSlow), counts); //back up
-            servo.SetDegree(60); //prepare to hit white button
+            Sleep(100);
+            servo.SetDegree(90); //prepare to hit white button
+            Sleep(100);
             move(percent-toSlow, counts); //drive forward and push button
+            Sleep(100);
             move(-(percent-toSlow), counts); //back up
         } else{ //if white is second
-            servo.SetDegree(60); //prepare to hit white button
+            servo.SetDegree(90); //prepare to hit white button
+            Sleep(100);
             move(percent-toSlow, counts); //drive forward and push button
+            Sleep(100);
             move(-(percent-toSlow), counts); //back up
-            servo.SetDegree(0); //prepare to hit red button
+            Sleep(100);
+            servo.SetDegree(25); //prepare to hit red button
+            Sleep(100);
             move(percent-toSlow, counts); //drive forward and push button
+            Sleep(100);
             move(-(percent-toSlow), counts); //back up
         } //else
     }
@@ -215,7 +257,7 @@ void getSalt(){
  */
 void depositSalt(){
     servoSalt.SetDegree(0);
-    move(-(percent-35), counts); //back up and push salt into garage
+    move(-(percent-toSlow), counts); //back up and push salt into garage
 } //depositSalt
 
 /*
@@ -276,18 +318,60 @@ void goToSwitch(){
 } //goToSwitch
 
 /*
- * This method is written in order to efficiently complete performance test 3
+ * This method will check the current heading of the robot, and set the heading of the robot to @param heading
+ * @param heading
+ *          the heading at which the robot wants to be
  */
-void performanceTest3(){
-    move(percent, cts_per_in*13); //move 13 inches forward
-    turn_left(percent- toSlow, cts_per_deg*90); //turn left 90 degrees
-    move(percent, cts_per_in*11); //move 11 inches forward
-    turn_left(percent - toSlow, cts_per_deg*90); //turn left 90 degrees
-    move(percent, cts_per_in*34); //move 34 inches forward
-    turn_left(percent-toSlow, cts_per_deg*45); //turn left 45 degrees
-    move(percent, cts_per_in*22); //move 22 inches forward
-    pushButtons();
-} //performanceTest3
+void check_heading(float heading){
+    const int turnPercent = 50;
+    float change = (int)abs(heading-RPS.Heading());
+    if(change>180){ change = 360-change; }
+    while(change > 2){
+        float curr_Heading = RPS.Heading();
+        if(curr_Heading < heading || (curr_Heading > 270 && heading < 90)){ //Turn right
+            right_motor.SetPercent(-turnPercent);
+            left_motor.SetPercent(turnPercent);
+        } //if
+        else { //Turn left
+            right_motor.SetPercent(turnPercent);
+            left_motor.SetPercent(-turnPercent);
+        } //else
+        Sleep(30);
+        change = (int)abs(heading-RPS.Heading());
+        if(change>180){
+            change = 360-change;
+        } //if
+    } //while
+    right_motor.SetPercent(0);
+    left_motor.SetPercent(0);
+} //check_heading
+
+/*
+ * This method was created to efficiently complete performance test 4
+ */
+void performanceTest4(){
+    turn_left(percent-toSlow, cts_per_deg*55); //angle robot towards salt
+    move(-percent, cts_per_in*27.5); //move to the salt
+    //check x and y
+    //check heading
+    getSalt();
+    turn_right(percent-toSlow, cts_per_deg*55); //prepare to go up ramp
+    //check heading
+    move(percent, cts_per_in*46); //go up ramp
+    turn_right(percent - toSlow, cts_per_deg*90); //turn towards garage
+    //check x and y
+    //check heading
+    move(-percent, cts_per_in*27); //get to garage
+    depositSalt();
+    move(percent, cts_per_in*27); //get back to last point
+    turn_left(percent, cts_per_deg*90); //prepare to go down ramp
+    move(percent, cts_per_in*27); //go down ramp
+    turn_left(percent-toSlow, cts_per_deg*45); //prepare to go to switch
+    move(percent, cts_per_in*27); //get to switch
+    //check x and y
+    //check heading
+    toggleSwitch();
+}//performanceTest4
 
 /*
  * The main method
@@ -309,9 +393,9 @@ int main(void)
     servoSalt.SetDegree(0);
     servo.SetDegree(0);
 
-    while(CdS.Value()>1);
+    while(CdS.Value()>1); //start on the light
 
-    performanceTest3();
+    performanceTest4();
 
 //    for (int i=0; i<arrayLength; i++){
 //        switch (taskArray[i]){
