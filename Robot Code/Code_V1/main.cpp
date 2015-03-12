@@ -9,7 +9,7 @@
 //Declarations for encoders & motors
 ButtonBoard buttons(FEHIO::Bank3);
 FEHEncoder right_encoder(FEHIO::P1_0);
-FEHEncoder left_encoder(FEHIO::P2_0);
+FEHEncoder left_encoder(FEHIO::P1_0);
 FEHMotor right_motor(FEHMotor::Motor0);
 FEHMotor left_motor(FEHMotor::Motor1);
 FEHServo servo(FEHServo::Servo7);
@@ -33,9 +33,10 @@ const float SWITCH_X = 13.669;
 const float SWITCH_Y = 9.9;
 
 const int percent = 60; //sets the motor percent for the rest of the code
-const int toSlow = 25; //this int will be the fix required for the robot to travel among the course
+const int toSlow = 15; //this int will be the fix required for the robot to travel among the course
 const float cts_per_in= 3.704; //counts per inch
 const float cts_per_deg = .1776; //counts per degree
+float initial_heading;
 
 //declares prototypes for functions
 void goToCrank();
@@ -78,7 +79,12 @@ void move(int percent, int counts) //using encoders
 
     //While the average of the left and right encoder are less than counts,
     //keep running motors
-    while((left_encoder.Counts() + right_encoder.Counts()) / 2. < counts);
+    while((left_encoder.Counts() + right_encoder.Counts()) / 2. < counts){
+        LCD.Write("L: ");
+        LCD.Write(left_encoder.Counts());
+        LCD.Write("  R: ");
+        LCD.WriteLine(right_encoder.Counts());
+    }
 
     //Turn off motors
     right_motor.Stop();
@@ -285,11 +291,11 @@ void toggleSwitch(){
  *      the robot will be at the start light
  */
 void goToSalt(){
-    move(-percent, cts_per_in*12);
+    move(-percent, cts_per_in*10);
     turn_left(percent-toSlow, cts_per_deg*45); //angle robot towards salt
-    move(-percent, cts_per_in*19); //move to the salt
+    move(-percent, cts_per_in*14); //move to the salt
     //check x and y
-    check_heading(135);
+    check_heading(((int)initial_heading + 45)%360);
 } //goToSalt
 
 /*
@@ -338,24 +344,32 @@ void goToSwitch(){
  *          the heading at which the robot wants to be
  */
 void check_heading(float heading){
-    const int turnPercent = 50;
+    const int turnPercent = 48;
     float change = (int)(abs(heading-RPS.Heading()));
     if(change>180){ change = 360-change; }
-    while(change > 2){
+    while(change > 10){
         float curr_Heading = RPS.Heading();
         if(curr_Heading < heading || (curr_Heading > 270 && heading < 90)){ //Turn right
-            right_motor.SetPercent(-turnPercent);
-            left_motor.SetPercent(turnPercent);
-        } //if
-        else { //Turn left
             right_motor.SetPercent(turnPercent);
             left_motor.SetPercent(-turnPercent);
+        } //if
+        else { //Turn left
+            right_motor.SetPercent(-turnPercent);
+            left_motor.SetPercent(turnPercent);
         } //else
-        Sleep(30);
+        Sleep(120);
+        right_motor.SetPercent(0);
+        left_motor.SetPercent(0);
+        Sleep(120);
         change = (int)abs(heading-RPS.Heading());
         if(change>180){
             change = 360-change;
         } //if
+        //Print to screen
+        LCD.Write("CH: ");
+        LCD.WriteLine(RPS.Heading());
+        LCD.WriteLine(" ");
+
     } //while
     right_motor.SetPercent(0);
     left_motor.SetPercent(0);
@@ -368,11 +382,11 @@ void performanceTest4(){
     goToSalt();
     getSalt();
     turn_right(percent-toSlow, cts_per_deg*45); //prepare to go up ramp
-    check_heading(90);
+    check_heading(((int)initial_heading + 90)%360);
     move(percent+20, cts_per_in*46); //go up ramp
     turn_right(percent - toSlow, cts_per_deg*90); //turn towards garage
     //check x and y
-    check_heading(0);
+    check_heading(((int)initial_heading)%360);
     move(-percent, cts_per_in*27); //get to garage
     depositSalt();
     move(percent, cts_per_in*27); //get back to last point
@@ -395,6 +409,8 @@ int main(void)
     LCD.Clear( FEHLCD::Black );
     LCD.SetFontColor( FEHLCD::White );
 
+    LCD.SetOrientation(FEHLCD::East);
+
     const int arrayLength = 5; //sets length of task array
 
     /*
@@ -406,6 +422,10 @@ int main(void)
     //initialize positions of servo motors
     servoSalt.SetDegree(74);
     servo.SetDegree(0);
+
+    RPS.InitializeMenu();
+
+    initial_heading = RPS.Heading();
 
     while(CdS.Value()>1); //start on the light
 
