@@ -4,6 +4,7 @@
 #include <FEHMotor.h>
 #include <FEHServo.h>
 #include <FEHRPS.h>
+#include <math.h>
 
 //Declarations for encoders & motors
 ButtonBoard buttons(FEHIO::Bank3);
@@ -25,7 +26,7 @@ const float SALT_Y = 8.4;
 const float BUTTONS_X_RB = 15.099;
 const float BUTTONS_Y = 64.099;
 const float BUTTONS_X_W = 13.8;
-const float BUTTONS_X_W = 62.8;
+const float BUTTONS_Y_W = 62.8;
 const float GARAGE_X = 6.4;
 const float GARAGE_Y = 59.099;
 const float SWITCH_X = 13.669;
@@ -249,7 +250,7 @@ void pushButtons(){
  * until it is deposited in the garage.
  */
 void getSalt(){
-    servoSalt.SetDegree(0);
+    servoSalt.SetDegree(172);
 } //getSalt
 
 /*
@@ -257,7 +258,7 @@ void getSalt(){
  */
 void depositSalt(){
     servoSalt.SetDegree(0);
-    move(-(percent-toSlow), counts); //back up and push salt into garage
+    move(-(percent-toSlow), cts_per_in*1); //back up and push salt into garage
 } //depositSalt
 
 /*
@@ -338,7 +339,7 @@ void goToSwitch(){
  */
 void check_heading(float heading){
     const int turnPercent = 50;
-    float change = (int)abs(heading-RPS.Heading());
+    float change = (int)(abs(heading-RPS.Heading()));
     if(change>180){ change = 360-change; }
     while(change > 2){
         float curr_Heading = RPS.Heading();
@@ -368,7 +369,7 @@ void performanceTest4(){
     getSalt();
     turn_right(percent-toSlow, cts_per_deg*45); //prepare to go up ramp
     check_heading(90);
-    move(percent, cts_per_in*46); //go up ramp
+    move(percent+20, cts_per_in*46); //go up ramp
     turn_right(percent - toSlow, cts_per_deg*90); //turn towards garage
     //check x and y
     check_heading(0);
@@ -394,7 +395,7 @@ int main(void)
     LCD.Clear( FEHLCD::Black );
     LCD.SetFontColor( FEHLCD::White );
 
-    const arrayLength = 5; //sets length of task array
+    const int arrayLength = 5; //sets length of task array
 
     /*
      * Initialize task array.
@@ -403,7 +404,7 @@ int main(void)
     int taskArray[arrayLength] = {0, 1, 2, 3, 4};
 
     //initialize positions of servo motors
-    servoSalt.SetDegree(90);
+    servoSalt.SetDegree(74);
     servo.SetDegree(0);
 
     while(CdS.Value()>1); //start on the light
