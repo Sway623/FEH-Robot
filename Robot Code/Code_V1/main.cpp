@@ -249,7 +249,7 @@ void pushButtons(){
  * until it is deposited in the garage.
  */
 void getSalt(){
-    servoSalt.SetDegree(90);
+    servoSalt.SetDegree(0);
 } //getSalt
 
 /*
@@ -280,13 +280,21 @@ void toggleSwitch(){
 
 /*
  * This method will take the robot from the start light, to the salt bag.
+ * @pre
+ *      the robot will be at the start light
  */
 void goToSalt(){
-
+    move(-percent, cts_per_in*12);
+    turn_left(percent-toSlow, cts_per_deg*45); //angle robot towards salt
+    move(-percent, cts_per_in*19); //move to the salt
+    //check x and y
+    check_heading(135);
 } //goToSalt
 
 /*
  * This method will take the robot from the salt bag to the crank.
+ * @pre
+ *      the robot will be at the salt bag
  */
 void goToCrank(){
 
@@ -294,6 +302,8 @@ void goToCrank(){
 
 /*
  * This method will take the robot from the crank to the buttons
+ * @pre
+ *      the robot will be at the crank
  */
 void goToButtons(){
 
@@ -303,6 +313,8 @@ void goToButtons(){
  * This method will take the robot from the buttons, to the garage.
  * After this method is called, the robot should be in good position
  * to deposit the salt into the garage.
+ * @pre
+ *      the robot will be at the buttons
  */
 void goToGarage(){
 
@@ -312,6 +324,8 @@ void goToGarage(){
  * Finally, this method will take the robot from the garage, to the oil switch.
  * After this method is called, the robot should go down the avalanche ramp and
  * be placed in a good position to toggle the switch.
+ * @pre
+ *      the robot will be at the garage
  */
 void goToSwitch(){
 
@@ -350,26 +364,25 @@ void check_heading(float heading){
  * This method was created to efficiently complete performance test 4
  */
 void performanceTest4(){
-    turn_left(percent-toSlow, cts_per_deg*55); //angle robot towards salt
-    move(-percent, cts_per_in*27.5); //move to the salt
-    //check x and y
-    //check heading
+    goToSalt();
     getSalt();
-    turn_right(percent-toSlow, cts_per_deg*55); //prepare to go up ramp
-    //check heading
+    turn_right(percent-toSlow, cts_per_deg*45); //prepare to go up ramp
+    check_heading(90);
     move(percent, cts_per_in*46); //go up ramp
     turn_right(percent - toSlow, cts_per_deg*90); //turn towards garage
     //check x and y
-    //check heading
+    check_heading(0);
     move(-percent, cts_per_in*27); //get to garage
     depositSalt();
     move(percent, cts_per_in*27); //get back to last point
+    //check x and y
+    check_heading(90);
     turn_left(percent, cts_per_deg*90); //prepare to go down ramp
     move(percent, cts_per_in*27); //go down ramp
     turn_left(percent-toSlow, cts_per_deg*45); //prepare to go to switch
     move(percent, cts_per_in*27); //get to switch
     //check x and y
-    //check heading
+    check_heading(0);
     toggleSwitch();
 }//performanceTest4
 
@@ -390,7 +403,7 @@ int main(void)
     int taskArray[arrayLength] = {0, 1, 2, 3, 4};
 
     //initialize positions of servo motors
-    servoSalt.SetDegree(0);
+    servoSalt.SetDegree(90);
     servo.SetDegree(0);
 
     while(CdS.Value()>1); //start on the light
